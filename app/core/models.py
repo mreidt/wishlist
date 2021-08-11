@@ -35,3 +35,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
+
+
+class Cliente(models.Model):
+    """Cliente model that stores client name and email"""
+    email = models.EmailField(max_length=255, unique=True)
+    name = models.CharField(max_length=255)
+
+    def __str__(self) -> str:
+        return self.email
