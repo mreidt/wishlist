@@ -2,6 +2,7 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
+from core import models
 
 
 class ModelTests(TestCase):
@@ -49,4 +50,24 @@ class ModelTests(TestCase):
 
         with self.assertRaises(IntegrityError):
             get_user_model().objects.create_user(email, '123pass')
+    # endregion
+
+    # region Cliente Testes
+    def test_create_cliente(self):
+        """Test creating a cliente"""
+        cliente = models.Cliente.objects.create(
+            name='Cliente Magalu',
+            email='cliente_magalu@luizalabs.com'
+        )
+
+        self.assertEqual(str(cliente), cliente.email)
+
+    def test_create_cliente_same_email_fails(self):
+        """Test creating two clientes with same email fails"""
+        email = 'cliente_magalu@luizalabs.com'
+
+        models.Cliente.objects.create(name='Cliente 1', email=email)
+
+        with self.assertRaises(IntegrityError):
+            models.Cliente.objects.create(name='Cliente 2', email=email)
     # endregion
