@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
                                         PermissionsMixin)
+import uuid
 
 
 class UserManager(BaseUserManager):
@@ -44,3 +45,16 @@ class Cliente(models.Model):
 
     def __str__(self) -> str:
         return self.email
+
+
+class Produto(models.Model):
+    """Produto model that stores product informations"""
+    id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
+    price = models.FloatField()
+    image = models.CharField(max_length=250)
+    brand = models.CharField(max_length=250)
+    title = models.CharField(max_length=250)
+    review_score = models.FloatField(null=True)
+
+    def __str__(self) -> str:
+        return self.title
