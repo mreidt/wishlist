@@ -58,3 +58,12 @@ class Produto(models.Model):
 
     def __str__(self) -> str:
         return self.title
+
+
+class WishlistItem(models.Model):
+    """Wishlist item model that stores clients wishlists"""
+    client = models.ForeignKey(Cliente, on_delete=models.CASCADE)
+    product = models.ForeignKey(Produto, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return f'{self.client}/{self.product}'
