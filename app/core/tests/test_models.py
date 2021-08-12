@@ -6,6 +6,34 @@ from django.db import IntegrityError
 from core import models
 
 
+SAMPLE_IMAGE_URL = ('http://challenge-api.luizalabs.com/images/'
+                    '1bf0f365-fbdd-4e21-9786-da459d78dd1f.jpg')
+
+
+def sample_cliente(email='test@luizalabs.com', name='Cliente teste'):
+    """Create a sample cliente"""
+    return models.Cliente.objects.create(email=email, name=name)
+
+
+def sample_produto(
+    id=uuid.UUID('1bf0f365-fbdd-4e21-9786-da459d78dd1f'),
+    image=SAMPLE_IMAGE_URL,
+    brand='b\u00e9b\u00e9 confort',
+    title='Cadeira para Auto Iseos B\u00e9b\u00e9 Confort Earth Brown',
+    price=1699.0,
+    review_score=None
+):
+    """Create a sample produto"""
+    return models.Produto.objects.create(
+        id=id,
+        image=image,
+        brand=brand,
+        title=title,
+        price=price,
+        review_score=review_score
+    )
+
+
 class ModelTests(TestCase):
 
     # region User Tests
@@ -79,8 +107,7 @@ class ModelTests(TestCase):
         produto_id = uuid.UUID('1bf0f365-fbdd-4e21-9786-da459d78dd1f')
         produto = models.Produto.objects.create(
             price=1699.0,
-            image='http://challenge-api.luizalabs.com/' +
-                  'images/1bf0f365-fbdd-4e21-9786-da459d78dd1f.jpg',
+            image=SAMPLE_IMAGE_URL,
             brand='b\u00e9b\u00e9 confort',
             id=produto_id,
             title='Cadeira para Auto Iseos B\u00e9b\u00e9 Confort Earth Brown')
@@ -88,4 +115,20 @@ class ModelTests(TestCase):
         self.assertEqual(str(produto), produto.title)
         search_produto = models.Produto.objects.get(id=produto_id)
         self.assertEqual(produto, search_produto)
+    # endregion
+
+    # region WishlistItem Testes
+    def test_create_wishlist_item(self):
+        """Test creating a wishlist item"""
+        produto = sample_produto()
+        cliente = sample_cliente()
+
+        wishlist_item = models.WishlistItem.objects.create(
+            client=cliente,
+            product=produto
+        )
+
+        wishlist_str_representation = (f'{wishlist_item.client}/'
+                                       f'{wishlist_item.product}')
+        self.assertEqual(str(wishlist_item), wishlist_str_representation)
     # endregion
