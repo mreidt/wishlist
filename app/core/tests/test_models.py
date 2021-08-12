@@ -1,4 +1,5 @@
 
+import uuid
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
@@ -70,4 +71,21 @@ class ModelTests(TestCase):
 
         with self.assertRaises(IntegrityError):
             models.Cliente.objects.create(name='Cliente 2', email=email)
+    # endregion
+
+    # region Produto Testes
+    def test_create_produto(self):
+        """Test creating a produto"""
+        produto_id = uuid.UUID('1bf0f365-fbdd-4e21-9786-da459d78dd1f')
+        produto = models.Produto.objects.create(
+            price=1699.0,
+            image='http://challenge-api.luizalabs.com/' +
+                  'images/1bf0f365-fbdd-4e21-9786-da459d78dd1f.jpg',
+            brand='b\u00e9b\u00e9 confort',
+            id=produto_id,
+            title='Cadeira para Auto Iseos B\u00e9b\u00e9 Confort Earth Brown')
+
+        self.assertEqual(str(produto), produto.title)
+        search_produto = models.Produto.objects.get(id=produto_id)
+        self.assertEqual(produto, search_produto)
     # endregion
