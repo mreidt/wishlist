@@ -10,6 +10,7 @@ RUN apk add --update --no-cache --virtual .tmp-build-deps \
 RUN pip install -r /requirements.txt
 RUN apk del .tmp-build-deps
 
+COPY .env /.env
 RUN mkdir /app
 WORKDIR /app
 COPY ./app /app
