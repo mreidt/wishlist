@@ -57,5 +57,8 @@ class WishlistItem(models.Model):
     client = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ForeignKey(Produto, on_delete=models.CASCADE)
 
+    class Meta:
+        unique_together = (('client', 'product'),)
+
     def __str__(self) -> str:
         return f'{self.client}/{self.product}'
