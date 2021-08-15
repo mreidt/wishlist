@@ -8,4 +8,5 @@ urlpatterns = [
     path('token/', views.CreateTokenView.as_view(), name='token'),
     path('me/', views.ManageUserView.as_view(), name='me'),
     path('remove/', views.RemoveUserView.as_view(), name='remove'),
+    path('list/', views.ListUsersView.as_view(), name='list'),
 ]

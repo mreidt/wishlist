@@ -54,3 +54,14 @@ class RemoveUserView(generics.DestroyAPIView):
         else:
             self.remove_user(self.request.user)
             return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ListUsersView(generics.ListAPIView):
+    """List users from the system"""
+    serializer_class = UserSerializer
+    authentication_classes = (authentication.TokenAuthentication,)
+    permission_classes = (
+        permissions.IsAuthenticated,
+        permissions.IsAdminUser,
+    )
+    queryset = get_user_model().objects.all()
