@@ -10,9 +10,9 @@ SAMPLE_IMAGE_URL = ('http://challenge-api.luizalabs.com/images/'
                     '1bf0f365-fbdd-4e21-9786-da459d78dd1f.jpg')
 
 
-def sample_cliente(email='test@luizalabs.com', name='Cliente teste'):
+def sample_cliente(**params):
     """Create a sample cliente"""
-    return models.Cliente.objects.create(email=email, name=name)
+    return get_user_model().objects.create(**params)
 
 
 def sample_produto(
@@ -81,26 +81,6 @@ class ModelTests(TestCase):
             get_user_model().objects.create_user(email, '123pass')
     # endregion
 
-    # region Cliente Testes
-    def test_create_cliente(self):
-        """Test creating a cliente"""
-        cliente = models.Cliente.objects.create(
-            name='Cliente Magalu',
-            email='cliente_magalu@luizalabs.com'
-        )
-
-        self.assertEqual(str(cliente), cliente.email)
-
-    def test_create_cliente_same_email_fails(self):
-        """Test creating two clientes with same email fails"""
-        email = 'cliente_magalu@luizalabs.com'
-
-        models.Cliente.objects.create(name='Cliente 1', email=email)
-
-        with self.assertRaises(IntegrityError):
-            models.Cliente.objects.create(name='Cliente 2', email=email)
-    # endregion
-
     # region Produto Testes
     def test_create_produto(self):
         """Test creating a produto"""
@@ -121,7 +101,11 @@ class ModelTests(TestCase):
     def test_create_wishlist_item(self):
         """Test creating a wishlist item"""
         produto = sample_produto()
-        cliente = sample_cliente()
+        cliente = sample_cliente(
+            email='cliente@luizalabs.com',
+            password='pass1234',
+            name='Client name'
+        )
 
         wishlist_item = models.WishlistItem.objects.create(
             client=cliente,

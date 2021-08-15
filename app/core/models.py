@@ -38,15 +38,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'email'
 
 
-class Cliente(models.Model):
-    """Cliente model that stores client name and email"""
-    email = models.EmailField(max_length=255, unique=True)
-    name = models.CharField(max_length=255)
-
-    def __str__(self) -> str:
-        return self.email
-
-
 class Produto(models.Model):
     """Produto model that stores product informations"""
     id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
@@ -62,7 +53,7 @@ class Produto(models.Model):
 
 class WishlistItem(models.Model):
     """Wishlist item model that stores clients wishlists"""
-    client = models.ForeignKey(Cliente, on_delete=models.CASCADE)
+    client = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ForeignKey(Produto, on_delete=models.CASCADE)
 
     def __str__(self) -> str:
