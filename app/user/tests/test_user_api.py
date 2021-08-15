@@ -192,3 +192,15 @@ class PrivateUserApiTests(TestCase):
 
         self.assertNotIn(self.user, users)
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_get_not_allowed_to_remove_endpoint(self):
+        """Test that GET is not allowed to remove endpoint"""
+        res = self.client.get(REMOVE_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_post_not_allowed_to_remove_endpoint(self):
+        """Test that POST is not allowed to remove endpoint"""
+        res = self.client.post(REMOVE_URL, {})
+
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
