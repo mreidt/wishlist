@@ -1,10 +1,10 @@
 
 import uuid
-from django.test import TestCase
+
+from core import models
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
-from core import models
-
+from django.test import TestCase
 
 SAMPLE_IMAGE_URL = ('http://challenge-api.luizalabs.com/images/'
                     '1bf0f365-fbdd-4e21-9786-da459d78dd1f.jpg')
