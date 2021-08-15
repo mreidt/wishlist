@@ -34,21 +34,23 @@ class RemoveUserView(generics.DestroyAPIView):
     authentication_classes = (authentication.TokenAuthentication,)
     permission_classes = (permissions.IsAuthenticated,)
 
+    def remove_user(self, user):
+        """Removes an user object"""
+        user.delete()
+
     def delete(self, request, *args, **kwargs):
-        remove_id = self.request.data.get('user_id', None)
+        """Removes an user object"""
+        remove_id = request.data.get('user_id', None)
         if remove_id:
             remove_id = int(remove_id)
             if self.request.user.id == remove_id:
-                remove_user = self.request.user
-                remove_user.delete()
+                self.remove_user(self.request.user)
                 return Response(status=status.HTTP_204_NO_CONTENT)
             if self.request.user.is_superuser:
-                remove_user = get_user_model().objects.get(pk=remove_id)
-                remove_user.delete()
+                self.remove_user(get_user_model().objects.get(pk=remove_id))
                 return Response(status=status.HTTP_204_NO_CONTENT)
             else:
                 return Response(status=status.HTTP_403_FORBIDDEN)
         else:
-            remove_user = self.request.user
-            remove_user.delete()
+            self.remove_user(self.request.user)
             return Response(status=status.HTTP_204_NO_CONTENT)
