@@ -3,12 +3,13 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
-
+from user.serializers import UserSerializer
 
 CREATE_USER_URL = reverse('user:create')
 TOKEN_URL = reverse('user:token')
 ME_URL = reverse('user:me')
 REMOVE_URL = reverse('user:remove')
+LIST_URL = reverse('user:list')
 
 
 def create_user(**params):
@@ -148,7 +149,7 @@ class PrivateUserApiTests(TestCase):
             email='adminuser@luizalabs.com',
             password='admin1234'
         )
-        another_user = get_user_model().objects.create_user(
+        another_user = create_user(
             email='commonuser@luizalabs.com',
             password='pass1234',
             name='common user'
@@ -165,7 +166,7 @@ class PrivateUserApiTests(TestCase):
 
     def test_remove_user_no_admin_fails(self):
         """Test that a common user cannot remove another user"""
-        another_user = get_user_model().objects.create_user(
+        another_user = create_user(
             email='commonuser@luizalabs.com',
             password='pass1234',
             name='common user'
@@ -202,5 +203,91 @@ class PrivateUserApiTests(TestCase):
     def test_post_not_allowed_to_remove_endpoint(self):
         """Test that POST is not allowed to remove endpoint"""
         res = self.client.post(REMOVE_URL, {})
+
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_retrieve_users(self):
+        """Test retrieve users"""
+        create_user(
+            email='commonuser@luizalabs.com',
+            password='pass1234',
+            name='common user'
+        )
+        admin = get_user_model().objects.create_superuser(
+            email='admin@luizalabs.com',
+            password='adminpass123'
+        )
+
+        client2 = APIClient()
+        client2.force_authenticate(user=admin)
+        users = get_user_model().objects.all()
+        serializer = UserSerializer(users, many=True)
+
+        res = client2.get(LIST_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
+
+    def test_retreive_users_no_admin_fails(self):
+        """Test only admin users can list all users"""
+        create_user(
+            email='commonuser@luizalabs.com',
+            password='pass1234',
+            name='common user'
+        )
+
+        res = self.client.get(LIST_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_post_not_allowed_to_list_endpoint(self):
+        """Test post method not allowed on list endpoint"""
+        admin = get_user_model().objects.create_superuser(
+            email='admin@luizalabs.com',
+            password='adminpass123'
+        )
+
+        client2 = APIClient()
+        client2.force_authenticate(user=admin)
+        res = client2.post(LIST_URL, {})
+
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_delete_not_allowed_to_list_endpoint(self):
+        """Test delete method not allowed on list endpoint"""
+        admin = get_user_model().objects.create_superuser(
+            email='admin@luizalabs.com',
+            password='adminpass123'
+        )
+
+        client2 = APIClient()
+        client2.force_authenticate(user=admin)
+        res = client2.delete(LIST_URL, {})
+
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_patch_not_allowed_to_list_endpoint(self):
+        """Test patch method not allowed on list endpoint"""
+        admin = get_user_model().objects.create_superuser(
+            email='admin@luizalabs.com',
+            password='adminpass123'
+        )
+
+        client2 = APIClient()
+        client2.force_authenticate(user=admin)
+        res = client2.patch(LIST_URL, {})
+
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_put_not_allowed_to_list_endpoint(self):
+        """Test put method not allowed on list endpoint"""
+        admin = get_user_model().objects.create_superuser(
+            email='admin@luizalabs.com',
+            password='adminpass123'
+        )
+
+        client2 = APIClient()
+        client2.force_authenticate(user=admin)
+        res = client2.put(LIST_URL, {})
 
         self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
