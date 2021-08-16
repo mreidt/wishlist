@@ -6,6 +6,7 @@ from rest_framework.test import APIClient
 from user.serializers import UserSerializer
 
 CREATE_USER_URL = reverse('user:create')
+CREATE_SUPERUSER_URL = reverse('user:create-superuser')
 TOKEN_URL = reverse('user:token')
 ME_URL = reverse('user:me')
 REMOVE_URL = reverse('user:remove')
@@ -99,6 +100,12 @@ class PublicUserApiTests(TestCase):
     def test_retrieve_user_unauthorized(self):
         """Test that authentication is required for users"""
         res = self.client.get(ME_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_create_superuser_not_allowed(self):
+        """Test that unauthenticated users cannot create a superuser"""
+        res = self.client.post(CREATE_SUPERUSER_URL, {})
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -304,3 +311,39 @@ class PrivateUserApiTests(TestCase):
         self.user.refresh_from_db()
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(self.user.email, email)
+
+    def test_superuser_creation(self):
+        """Test superuser creation successful"""
+        admin = get_user_model().objects.create_superuser(
+            email='admin@luizalabs.com',
+            password='adminpass123'
+        )
+
+        client2 = APIClient()
+        client2.force_authenticate(user=admin)
+
+        payload = {
+            'email': 'anotheradmin@luizalabs.com',
+            'password': 'anotherpass123',
+            'name': 'another admin'
+        }
+        res = client2.post(CREATE_SUPERUSER_URL, payload)
+        admin2 = get_user_model().objects.get(email=payload.get('email'))
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(res.data.get('name'), payload.get('name'))
+        self.assertTrue(admin2.check_password(payload.get('password')))
+        self.assertTrue(admin2.is_superuser)
+
+    def test_normal_user_creating_superuser_fails(self):
+        """Test that a normal user cannot create an admin"""
+        payload = {
+            'email': 'anotheradmin@luizalabs.com',
+            'password': 'anotherpass123',
+            'name': 'another admin'
+        }
+        res = self.client.post(CREATE_SUPERUSER_URL, payload)
+        admin2 = get_user_model().objects.filter(email=payload.get('email'))
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(len(admin2), 0)
