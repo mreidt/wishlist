@@ -27,6 +27,10 @@ class ManageUserView(generics.RetrieveUpdateAPIView):
         """Retrieve and return authentication user"""
         return self.request.user
 
+    def get_queryset(self):
+        """Get data about authenticated user"""
+        return get_user_model().objects.get(id=self.request.user.id)
+
 
 class RemoveUserView(generics.DestroyAPIView):
     """Remove users from the system"""

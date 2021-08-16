@@ -17,6 +17,11 @@ class UserSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         """Update a user, setting the password correctly and return it"""
+        if validated_data.get('email', None):
+            message = _(
+                'Email can not be changed!'
+            )
+            raise serializers.ValidationError(message, code='email')
         password = validated_data.pop('password', None)
         user = super().update(instance, validated_data)
 
