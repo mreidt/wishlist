@@ -30,8 +30,7 @@ def sample_product(**params):
         'price': 10.9,
         'image': f'{base_url}/{uid}',
         'brand': 'sample brand',
-        'title': 'Sample product',
-        'review_score': 4.1}
+        'title': 'Sample product'}
     defaults.update(params)
 
     return Produto.objects.create(**defaults)

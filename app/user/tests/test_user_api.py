@@ -125,12 +125,10 @@ class PrivateUserApiTests(TestCase):
     def test_retrieve_profile_success(self):
         """Test retrieving profile for logged in user"""
         res = self.client.get(ME_URL)
+        serializer = UserSerializer(self.user)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data, {
-            'name': self.user.name,
-            'email': self.user.email
-        })
+        self.assertEqual(res.data, serializer.data)
 
     def test_post_me_not_allowed(self):
         """Test that POST is not allowed on the me url"""
