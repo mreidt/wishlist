@@ -3,12 +3,23 @@ from rest_framework import authentication, generics, permissions, status
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
-from user.serializers import AuthTokenSerializer, UserSerializer
+from user.serializers import (AuthTokenSerializer, SuperuserSerializer,
+                              UserSerializer)
 
 
 class CreateUserView(generics.CreateAPIView):
     """Create a new user in the system"""
     serializer_class = UserSerializer
+
+
+class CreateSuperuserView(generics.CreateAPIView):
+    """Create a new superuser in the system"""
+    serializer_class = SuperuserSerializer
+    authentication_classes = (authentication.TokenAuthentication,)
+    permission_classes = (
+        permissions.IsAuthenticated,
+        permissions.IsAdminUser,
+    )
 
 
 class CreateTokenView(ObtainAuthToken):
