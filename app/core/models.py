@@ -46,7 +46,7 @@ class Produto(models.Model):
     image = models.CharField(max_length=250)
     brand = models.CharField(max_length=250)
     title = models.CharField(max_length=250)
-    review_score = models.FloatField(null=True)
+    review_score = models.FloatField(null=True, blank=True)
 
     def __str__(self) -> str:
         return self.title
