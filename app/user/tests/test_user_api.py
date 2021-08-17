@@ -7,7 +7,7 @@ from user.serializers import UserSerializer
 
 CREATE_USER_URL = reverse('user:create')
 CREATE_SUPERUSER_URL = reverse('user:create-superuser')
-TOKEN_URL = reverse('user:token')
+TOKEN_URL = reverse('token_obtain_pair')
 ME_URL = reverse('user:me')
 REMOVE_URL = reverse('user:remove')
 LIST_URL = reverse('user:list')
@@ -71,7 +71,7 @@ class PublicUserApiTests(TestCase):
         create_user(**payload)
         res = self.client.post(TOKEN_URL, payload)
 
-        self.assertIn('token', res.data)
+        self.assertIn('access', res.data)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
     def test_create_token_invalide_credentials(self):
@@ -80,21 +80,21 @@ class PublicUserApiTests(TestCase):
         payload = {'email': 'test_user@luizalabs.com', 'password': 'wrong1234'}
         res = self.client.post(TOKEN_URL, payload)
 
-        self.assertNotIn('token', res.data)
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertNotIn('access', res.data)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_create_token_no_user(self):
         """Test that token is not created if user doesn't exist"""
         payload = {'email': 'test_user@luizalabs.com', 'password': 'wrong1234'}
         res = self.client.post(TOKEN_URL, payload)
 
-        self.assertNotIn('token', res.data)
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertNotIn('access', res.data)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_create_token_missing_field(self):
         """Test that email and password are required"""
         res = self.client.post(TOKEN_URL, {'email': 'one', 'password': ''})
-        self.assertNotIn('token', res.data)
+        self.assertNotIn('access', res.data)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_retrieve_user_unauthorized(self):

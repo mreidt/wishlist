@@ -1,8 +1,8 @@
 import requests
 from core.models import Produto, WishlistItem
-from rest_framework import (authentication, generics, permissions, status,
-                            viewsets)
+from rest_framework import generics, permissions, status, viewsets
 from rest_framework.response import Response
+from rest_framework_simplejwt import authentication
 from wishlist.serializers import (ProdutoSerializer,
                                   WishlistItemDetailSerializer,
                                   WishlistItemSerializer)
@@ -13,7 +13,7 @@ EXT_URL = 'http://challenge-api.luizalabs.com/api/product'
 class WishlistItemViewSet(viewsets.ModelViewSet, generics.DestroyAPIView):
     queryset = WishlistItem.objects.all()
     serializer_class = WishlistItemSerializer
-    authentication_classes = (authentication.TokenAuthentication,)
+    authentication_classes = (authentication.JWTAuthentication,)
     permission_classes = (permissions.IsAuthenticated,)
 
     def get_queryset(self):
