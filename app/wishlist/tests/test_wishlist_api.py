@@ -30,11 +30,15 @@ def sample_product(**params):
         'price': 10.9,
         'image': f'{base_url}/{uid}',
         'brand': 'sample brand',
-        'title': 'Sample product',
-        'review_score': 4.1}
+        'title': 'Sample product'}
     defaults.update(params)
 
     return Produto.objects.create(**defaults)
+
+
+def delete_url(wishlist_item_id):
+    """Return delete wishlist item URL"""
+    return reverse('wishlist:wishlistitem-detail', args=[wishlist_item_id])
 
 
 class PublicWishlistApiTests(TestCase):
@@ -160,3 +164,38 @@ class PrivateWishlistApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
+
+    def test_remove_product_from_wishlist(self):
+        """Test user can remove products from wishlist"""
+        product_uuid = uuid.UUID('af04c0ee-7137-4848-fd33-a2d148412095')
+        product = sample_product(id=product_uuid)
+
+        wishlist_item = sample_wishlist_item(client=self.user, product=product)
+
+        url = delete_url(wishlist_item_id=wishlist_item.id)
+        res = self.client.delete(url)
+        wishlist_items = WishlistItem.objects.all()
+
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(len(wishlist_items), 0)
+
+    def test_remove_product_from_another_user_wishlist_fails(self):
+        """Test user can remove products from another user wishlist fails"""
+        product_uuid = uuid.UUID('af04c0ee-7137-4848-fd33-a2d148412095')
+        product = sample_product(id=product_uuid)
+
+        wishlist_item = sample_wishlist_item(client=self.user, product=product)
+        user2 = create_user(
+            email='newuser@luizalabs.com',
+            password='testpass',
+            name='Test name'
+        )
+        client2 = APIClient()
+        client2.force_authenticate(user=user2)
+
+        url = delete_url(wishlist_item_id=wishlist_item.id)
+        res = client2.delete(url)
+        wishlist_items = WishlistItem.objects.filter(id=wishlist_item.id)
+
+        self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertIn(wishlist_item, wishlist_items)

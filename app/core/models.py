@@ -17,9 +17,9 @@ class UserManager(BaseUserManager):
 
         return user
 
-    def create_superuser(self, email, password):
+    def create_superuser(self, email, password, **extra_fields):
         """Creates and saves a new superuser"""
-        user = self.create_user(email, password)
+        user = self.create_user(email, password, **extra_fields)
         user.is_staff = True
         user.is_superuser = True
         user.save(using=self._db)
@@ -46,7 +46,7 @@ class Produto(models.Model):
     image = models.CharField(max_length=250)
     brand = models.CharField(max_length=250)
     title = models.CharField(max_length=250)
-    review_score = models.FloatField(null=True)
+    review_score = models.FloatField(null=True, blank=True)
 
     def __str__(self) -> str:
         return self.title

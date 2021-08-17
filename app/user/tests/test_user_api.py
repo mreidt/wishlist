@@ -6,7 +6,8 @@ from rest_framework.test import APIClient
 from user.serializers import UserSerializer
 
 CREATE_USER_URL = reverse('user:create')
-TOKEN_URL = reverse('user:token')
+CREATE_SUPERUSER_URL = reverse('user:create-superuser')
+TOKEN_URL = reverse('token_obtain_pair')
 ME_URL = reverse('user:me')
 REMOVE_URL = reverse('user:remove')
 LIST_URL = reverse('user:list')
@@ -70,7 +71,7 @@ class PublicUserApiTests(TestCase):
         create_user(**payload)
         res = self.client.post(TOKEN_URL, payload)
 
-        self.assertIn('token', res.data)
+        self.assertIn('access', res.data)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
     def test_create_token_invalide_credentials(self):
@@ -79,26 +80,32 @@ class PublicUserApiTests(TestCase):
         payload = {'email': 'test_user@luizalabs.com', 'password': 'wrong1234'}
         res = self.client.post(TOKEN_URL, payload)
 
-        self.assertNotIn('token', res.data)
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertNotIn('access', res.data)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_create_token_no_user(self):
         """Test that token is not created if user doesn't exist"""
         payload = {'email': 'test_user@luizalabs.com', 'password': 'wrong1234'}
         res = self.client.post(TOKEN_URL, payload)
 
-        self.assertNotIn('token', res.data)
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertNotIn('access', res.data)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_create_token_missing_field(self):
         """Test that email and password are required"""
         res = self.client.post(TOKEN_URL, {'email': 'one', 'password': ''})
-        self.assertNotIn('token', res.data)
+        self.assertNotIn('access', res.data)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_retrieve_user_unauthorized(self):
         """Test that authentication is required for users"""
         res = self.client.get(ME_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_create_superuser_not_allowed(self):
+        """Test that unauthenticated users cannot create a superuser"""
+        res = self.client.post(CREATE_SUPERUSER_URL, {})
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -118,12 +125,10 @@ class PrivateUserApiTests(TestCase):
     def test_retrieve_profile_success(self):
         """Test retrieving profile for logged in user"""
         res = self.client.get(ME_URL)
+        serializer = UserSerializer(self.user)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data, {
-            'name': self.user.name,
-            'email': self.user.email
-        })
+        self.assertEqual(res.data, serializer.data)
 
     def test_post_me_not_allowed(self):
         """Test that POST is not allowed on the me url"""
@@ -291,3 +296,52 @@ class PrivateUserApiTests(TestCase):
         res = client2.put(LIST_URL, {})
 
         self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_update_user_email_fails(self):
+        """Test authenticated user email fails"""
+        payload = {
+            'email': 'newmail@luizalabs.com'
+        }
+
+        email = self.user.email
+        res = self.client.patch(ME_URL, payload)
+
+        self.user.refresh_from_db()
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(self.user.email, email)
+
+    def test_superuser_creation(self):
+        """Test superuser creation successful"""
+        admin = get_user_model().objects.create_superuser(
+            email='admin@luizalabs.com',
+            password='adminpass123'
+        )
+
+        client2 = APIClient()
+        client2.force_authenticate(user=admin)
+
+        payload = {
+            'email': 'anotheradmin@luizalabs.com',
+            'password': 'anotherpass123',
+            'name': 'another admin'
+        }
+        res = client2.post(CREATE_SUPERUSER_URL, payload)
+        admin2 = get_user_model().objects.get(email=payload.get('email'))
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(res.data.get('name'), payload.get('name'))
+        self.assertTrue(admin2.check_password(payload.get('password')))
+        self.assertTrue(admin2.is_superuser)
+
+    def test_normal_user_creating_superuser_fails(self):
+        """Test that a normal user cannot create an admin"""
+        payload = {
+            'email': 'anotheradmin@luizalabs.com',
+            'password': 'anotherpass123',
+            'name': 'another admin'
+        }
+        res = self.client.post(CREATE_SUPERUSER_URL, payload)
+        admin2 = get_user_model().objects.filter(email=payload.get('email'))
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(len(admin2), 0)
