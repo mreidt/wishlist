@@ -1,13 +1,16 @@
 import requests
 from core.models import Produto, WishlistItem
-from rest_framework import authentication, permissions, status, viewsets
+from rest_framework import (authentication, generics, permissions, status,
+                            viewsets)
 from rest_framework.response import Response
-from wishlist.serializers import ProdutoSerializer, WishlistItemSerializer
+from wishlist.serializers import (ProdutoSerializer,
+                                  WishlistItemDetailSerializer,
+                                  WishlistItemSerializer)
 
 EXT_URL = 'http://challenge-api.luizalabs.com/api/product'
 
 
-class WishlistItemViewSet(viewsets.ModelViewSet):
+class WishlistItemViewSet(viewsets.ModelViewSet, generics.DestroyAPIView):
     queryset = WishlistItem.objects.all()
     serializer_class = WishlistItemSerializer
     authentication_classes = (authentication.TokenAuthentication,)
@@ -16,6 +19,12 @@ class WishlistItemViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = self.queryset
         return queryset.filter(client=self.request.user)
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return WishlistItemDetailSerializer
+
+        return self.serializer_class
 
     def exist_product_database(self, product_id):
         """Verify if the product exists in database"""
