@@ -1,4 +1,17 @@
 # wishlist
+
+## Documentação
+
+A documentação foi criada utilizando o Sphinx, portanto, para gerar os arquivos é necessário ter o pacote instalado.
+
+Para instruções de instalação, seguir o seguinte link: https://www.sphinx-doc.org/en/master/usage/installation.html
+
+Após instalado o Sphinx, basta entrar no diretório docs e executar o seguinte comando: make html
+
+Isso irá gerar a documentação em formato html, no diretório docs/build/html
+
+## Desafio
+
 O Magalu está expandindo seus negócios e uma das novas missões do time de tecnologia é criar uma funcionalidade de Produtos Favoritos de nossos Clientes, em que os nossos aplicativos irão enviar requisições HTTP para um novo backend que deverá gerenciar nossos clientes e seus produtos favoritos. Esta nova API REST será crucial para ações de marketing da empresa e terá um grande volume de requisições então tenha em mente que a preocupação com performance é algo que temos em mente constantemente.
 
 ● Deve ser possível criar, atualizar, visualizar e remover Clientes
